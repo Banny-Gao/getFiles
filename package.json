@@ -1,0 +1,22 @@
+{
+  "name": "getfiles",
+  "version": "1.0.0",
+  "description": "a javascript tool for get file ",
+  "main": "upload.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mackkkk/getFiles.git"
+  },
+  "keywords": [
+    "getFiles"
+  ],
+  "author": "amigogo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mackkkk/getFiles/issues"
+  },
+  "homepage": "https://github.com/Mackkkk/getFiles#readme"
+}
