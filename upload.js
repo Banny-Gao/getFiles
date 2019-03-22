@@ -80,7 +80,7 @@ UpLoad.prototype = {
       const limitMore = this.limitSizeCompute(file),
         reader = new FileReader()
       let url = URL.createObjectURL(file)
-      if (limitMore && !this.compress) return alert('more than limit size')
+      if (limitMore && !_this.compress) return alert('more than limit size')
       reader.onload = async function () {
         let data = this.result
         const compressFun = _this[`compress${_this.accept}`]
