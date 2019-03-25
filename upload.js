@@ -1,15 +1,15 @@
 function UpLoad(option) {
   const obj = {
     el: document.querySelector(option.el),
-    callBack: option.callback || new Function(),
-    complete: option.complete || new Function(),
-    accept: option.accept || 'image',
-    type: option.type || 'file',
-    compress: false,
+    callBack: option.callback || new Function(), //所选文件中其中一个处理完成回调
+    complete: option.complete || new Function(), //所有文件处理完成回调
+    accept: option.accept || 'image', //接收类型 [image|video|audio|text|*]
+    type: option.type || 'file', //返回类型[file|blob|base64]
+    compress: option.compress || false, //是否压缩
     acceptReg: new RegExp(),
     isComplete: 0,
-    limitCount: option.limitCount || 1,
-    limitSize: option.limitSize || '5MB',
+    limitCount: option.limitCount || 1, //限制选择文件数量
+    limitSize: option.limitSize || '5MB', //限制选择文件大小[number(kb|mb|gb)]
     limitLevel: 0,
     limitNum: 0,
     fileList: []
@@ -23,17 +23,18 @@ UpLoad.prototype = {
     this.acceptRule(this.accept)
     this.el.addEventListener('change', this.bindEvent.bind(this))
     Object.defineProperty(this, 'isComplete', {
-      get: function () {
+      get: function() {
         return isComplete
       },
-      set: function (val) {
+      set: function(val) {
         isComplete = val
         this.asyncFileComplete()
       }
     })
   },
   acceptRule(type) {
-    const acceptArray = [{
+    const acceptArray = [
+      {
         type: 'image',
         reg: /\/(?:bmp|jpeg|jpg|gif|psd|png|webp)/i,
         capture: 'camera',
@@ -76,12 +77,13 @@ UpLoad.prototype = {
       fileList = Array.prototype.slice.call(this.files)
     if (fileList.length > this.limitCount) return alert('more than limit count')
     fileList.forEach(file => {
-      if (!this.acceptReg.test(file.type)) return alert('choose file type error')
+      if (!this.acceptReg.test(file.type))
+        return alert('choose file type error')
       const limitMore = this.limitSizeCompute(file),
         reader = new FileReader()
       let url = URL.createObjectURL(file)
       if (limitMore && !_this.compress) return alert('more than limit size')
-      reader.onload = async function () {
+      reader.onload = async function() {
         let data = this.result
         const compressFun = _this[`compress${_this.accept}`]
         if (limitMore) data = await compressFun.call(_this, data)
@@ -111,7 +113,9 @@ UpLoad.prototype = {
   },
 
   limitSizeCompute(file) {
-    const fileSize = file.size / 1.32,
+    const type = Object.prototype.toString.call(file),
+      fileSize =
+        type === '[object File]' ? file.size / 1.34 : file.length / 1.34,
       limit = this.limitSize.split(/(\d+)/g).filter(item => item),
       limitSize = parseInt(limit[0]),
       limitUnit = String.prototype.toUpperCase.call(limit[1])
@@ -130,40 +134,46 @@ UpLoad.prototype = {
     return size > limitSize
   },
   compressvideo(data) {
+    //待完善
     return new Promise(resolve => {
       const len = this.limitNum * Math.pow(1024, this.limitLevel) + 22
       resolve(data.substring(0, len))
     })
   },
-  compressimage(data) {
+  compressimage(data, count = 0) {
     return new Promise(resolve => {
+      count++
+      const limitMore = this.limitSizeCompute(data)
+      if (!limitMore || count > 3) return resolve(data)
       const canvas = document.createElement('canvas'),
         ctx = canvas.getContext('2d'),
         img = new Image()
       img.src = data
       img.onload = () => {
-        const initSize = img.src.length
+        const initSize = data.length
         let width = img.width,
           height = img.height
-        const ratio = parseFloat(
-          data.length /
-          (this.limitNum * Math.pow(1024, this.limitLevel) + 23) /
-          1.31
-        ).toFixed(2)
-        console.log(ratio)
+        const infoData = data.match(/data\:(.+);base64,/),
+          len = data.length - infoData[0].length,
+          type = infoData[1],
+          ratio = parseFloat(
+            len / 1.34 / (this.limitNum * Math.pow(1024, this.limitLevel))
+          ).toFixed(2)
         canvas.width = width
         canvas.height = height
         ctx.fillStyle = '#fff'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
         ctx.drawImage(img, 0, 0, width, height)
-        data = canvas.toDataURL('image/jpeg', 1 / Math.cbrt(ratio))
+        data = canvas.toDataURL(type, 1 / Math.cbrt(ratio))
         console.log('压缩前：' + initSize)
         console.log('压缩后：' + data.length)
         console.log(
           '压缩率：' + ~~((100 * (initSize - data.length)) / initSize) + '%'
         )
         canvas.width = canvas.height = 0
-        resolve(data)
+        this.compressimage(data, count).then(data => {
+          resolve(data)
+        })
       }
     })
   },
@@ -202,16 +212,16 @@ UpLoad.prototype = {
   asyncFileComplete() {
     if (this.files.length === this.isComplete) this.complete(this.fileList)
   },
-  getBlob: function (buffer, format) {
+  getBlob: function(buffer, format) {
     try {
       return new Blob(buffer, {
         type: format
       })
     } catch (e) {
-      const blob = new(window.BlobBuilder ||
+      const blob = new (window.BlobBuilder ||
         window.WebKitBlobBuilder ||
         window.MSBlobBuilder)()
-      buffer.forEach(function (buf) {
+      buffer.forEach(function(buf) {
         blob.append(buf)
       })
       return blob.getBlob(format)

@@ -79,14 +79,14 @@
 <script>
   new UpLoad({
     el: '#upup',
-    type: 'base64', //file|base64|blob
+    type: 'blob', //file|base64|blob
     accept: 'image', //image|video|audio|txt|*
     compress: true,
     limitCount: 1,
-    limitSize: '5M',
+    limitSize: '2MB',
     complete: function (fileList) {
       // [{file,url}]
-      // window.close()
+      console.log(fileList)
     },
     callback: function (file, url) {
       // console.log(file, url)
