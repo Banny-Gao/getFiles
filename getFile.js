@@ -1,4 +1,4 @@
-function UpLoad(option) {
+function GetFile(option) {
   const obj = {
     el: document.querySelector(option.el),
     callBack: option.callback || new Function(), //所选文件中其中一个处理完成回调
@@ -17,24 +17,23 @@ function UpLoad(option) {
   Object.assign(this, obj)
   this.init()
 }
-UpLoad.prototype = {
+GetFile.prototype = {
   init() {
     let isComplete = this.isComplete
     this.acceptRule(this.accept)
     this.el.addEventListener('change', this.bindEvent.bind(this))
     Object.defineProperty(this, 'isComplete', {
-      get: function() {
+      get: function () {
         return isComplete
       },
-      set: function(val) {
+      set: function (val) {
         isComplete = val
         this.asyncFileComplete()
       }
     })
   },
   acceptRule(type) {
-    const acceptArray = [
-      {
+    const acceptArray = [{
         type: 'image',
         reg: /\/(?:bmp|jpeg|jpg|gif|psd|png|webp)/i,
         capture: 'camera',
@@ -83,7 +82,7 @@ UpLoad.prototype = {
         reader = new FileReader()
       let url = URL.createObjectURL(file)
       if (limitMore && !_this.compress) return alert('more than limit size')
-      reader.onload = async function() {
+      reader.onload = async function () {
         let data = this.result
         const compressFun = _this[`compress${_this.accept}`]
         if (limitMore) data = await compressFun.call(_this, data)
@@ -115,7 +114,7 @@ UpLoad.prototype = {
   limitSizeCompute(file) {
     const type = Object.prototype.toString.call(file),
       fileSize =
-        type === '[object File]' ? file.size / 1.34 : file.length / 1.34,
+      type === '[object File]' ? file.size / 1.34 : file.length / 1.34,
       limit = this.limitSize.split(/(\d+)/g).filter(item => item),
       limitSize = parseInt(limit[0]),
       limitUnit = String.prototype.toUpperCase.call(limit[1])
@@ -212,16 +211,16 @@ UpLoad.prototype = {
   asyncFileComplete() {
     if (this.files.length === this.isComplete) this.complete(this.fileList)
   },
-  getBlob: function(buffer, format) {
+  getBlob: function (buffer, format) {
     try {
       return new Blob(buffer, {
         type: format
       })
     } catch (e) {
-      const blob = new (window.BlobBuilder ||
+      const blob = new(window.BlobBuilder ||
         window.WebKitBlobBuilder ||
         window.MSBlobBuilder)()
-      buffer.forEach(function(buf) {
+      buffer.forEach(function (buf) {
         blob.append(buf)
       })
       return blob.getBlob(format)
